@@ -42,6 +42,10 @@ func main() {
 		Persona: personaContent,
 	})
 
+	// 初始化对话日志记录器
+	logPath, _ := filepath.Abs(cfg.ChatLogPath)
+	handler.InitChatLogger(logPath)
+
 	// 创建处理器
 	chatHandler := handler.NewChatHandler(chatService, personaLoader, cfg)
 

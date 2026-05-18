@@ -127,6 +127,9 @@ func (h *ChatHandler) ChatHandler(c *gin.Context) {
 		return
 	}
 
+	// 保存对话日志
+	go logger.Log(req.Message, reply)
+
 	c.JSON(http.StatusOK, ChatResponse{Reply: reply})
 }
 
@@ -143,8 +146,11 @@ func (h *ChatHandler) StreamHandler(c *gin.Context) {
 	c.Header("Connection", "keep-alive")
 	c.Header("Transfer-Encoding", "chunked")
 
+	var fullReply string
+
 	c.Stream(func(w io.Writer) bool {
 		err := h.chatService.ChatStream(c.Request.Context(), req.Message, func(chunk string) {
+			fullReply += chunk
 			data := fmt.Sprintf("data: %s\n\n", chunk)
 			c.Writer.Write([]byte(data))
 			c.Writer.Flush()
@@ -153,6 +159,10 @@ func (h *ChatHandler) StreamHandler(c *gin.Context) {
 			c.Writer.Write([]byte(fmt.Sprintf("data: [ERROR] %s\n\n", err.Error())))
 		}
 		c.Writer.Write([]byte("data: [DONE]\n\n"))
+
+		// 保存对话日志
+		go logger.Log(req.Message, fullReply)
+
 		return false
 	})
 }
