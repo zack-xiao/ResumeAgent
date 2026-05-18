@@ -78,6 +78,9 @@ func main() {
 		api.POST("/chat", chatHandler.ChatHandler)
 		api.POST("/chat/stream", chatHandler.StreamHandler)
 		api.POST("/reload", chatHandler.ReloadHandler)
+		api.GET("/resume", func(c *gin.Context) {
+			c.File("../data/肖正烁的简历.pdf")
+		})
 	}
 
 	// 前端页面
