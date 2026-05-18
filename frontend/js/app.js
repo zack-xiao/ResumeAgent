@@ -203,7 +203,9 @@ class ChatApp {
         const messageEl = document.createElement('div');
         messageEl.className = `message ${role}`;
 
-        const avatar = role === 'ai' ? '🤖' : '👤';
+        const avatar = role === 'ai' 
+            ? '<img src="/data/头像.jpg" alt="AI" class="avatar-img" />' 
+            : '<span class="avatar-emoji">👤</span>';
 
         if (placeholder) {
             messageEl.innerHTML = `
