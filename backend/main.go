@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
@@ -67,8 +68,15 @@ func main() {
 		c.Next()
 	})
 
-	// 静态文件服务
-	r.Static("/static", "../frontend")
+	// 静态文件服务 - 使用绝对路径
+	frontendPath, _ := filepath.Abs("../frontend")
+	dataPath, _ := filepath.Abs("../data")
+	r.Static("/static", frontendPath)
+	r.Static("/data", dataPath)
+
+	// 前端页面和简历路径
+	frontendPathAbs, _ := filepath.Abs("../frontend")
+	dataPathAbs, _ := filepath.Abs("../data")
 
 	// API 路由
 	api := r.Group("/api")
@@ -79,13 +87,13 @@ func main() {
 		api.POST("/chat/stream", chatHandler.StreamHandler)
 		api.POST("/reload", chatHandler.ReloadHandler)
 		api.GET("/resume", func(c *gin.Context) {
-			c.File("../data/肖正烁的简历.pdf")
+			c.File(filepath.Join(dataPathAbs, "肖正烁的简历.pdf"))
 		})
 	}
 
 	// 前端页面
 	r.GET("/", func(c *gin.Context) {
-		c.File("../frontend/index.html")
+		c.File(filepath.Join(frontendPathAbs, "index.html"))
 	})
 
 	addr := ":" + cfg.Port
