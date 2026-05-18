@@ -1,0 +1,25 @@
+# 环境变量
+.env
+.env.local
+.env.*.local
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# 编译产物
+*.exe
+*.dll
+*.so
+*.dylib
+/bin/
+/dist/
+
+# 测试覆盖
+*.out
+
+# OS
+.DS_Store
+Thumbs.db
