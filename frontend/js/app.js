@@ -1,18 +1,19 @@
 class ChatApp {
     constructor() {
-        this.chatContainer = document.getElementById('chat-container');
+        this.chatMessages = document.getElementById('chat-messages');
         this.messageInput = document.getElementById('message-input');
         this.sendBtn = document.getElementById('send-btn');
         this.aiName = document.getElementById('ai-name');
-        this.welcomeMessage = document.getElementById('welcome-message');
+        this.welcomeCard = document.getElementById('welcome-card');
 
         this.init();
     }
 
-    async init() {
+    init() {
         this.bindEvents();
-        await this.loadInit();
+        this.loadInit();
         this.adjustTextareaHeight();
+        this.initQuickButtons();
     }
 
     bindEvents() {
@@ -35,18 +36,40 @@ class ChatApp {
         this.messageInput.style.height = Math.min(this.messageInput.scrollHeight, 150) + 'px';
     }
 
+    initQuickButtons() {
+        document.querySelectorAll('.quick-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const question = btn.dataset.question;
+                this.messageInput.value = question;
+                this.sendMessage();
+            });
+        });
+    }
+
     async loadInit() {
         try {
             const response = await fetch('/api/init');
             const data = await response.json();
 
-            this.aiName.textContent = data.name;
-
+            if (data.name) {
+                this.aiName.textContent = data.name;
+            }
             if (data.welcome) {
-                this.addMessage('ai', data.welcome);
+                this.updateWelcomeMessage(data.welcome);
             }
         } catch (error) {
             console.error('初始化失败:', error);
+        }
+    }
+
+    updateWelcomeMessage(welcome) {
+        const h1 = this.welcomeCard?.querySelector('h1');
+        const p = this.welcomeCard?.querySelector('p');
+        if (h1) {
+            h1.textContent = welcome.split('！')[0] + '！';
+        }
+        if (p) {
+            p.textContent = '你可以直接向我提问，我会以第一人称帮你介绍正烁的背景和经历';
         }
     }
 
@@ -58,9 +81,9 @@ class ChatApp {
         this.messageInput.value = '';
         this.adjustTextareaHeight();
 
-        // 隐藏欢迎消息
-        if (this.welcomeMessage) {
-            this.welcomeMessage.style.display = 'none';
+        // 隐藏欢迎卡片
+        if (this.welcomeCard) {
+            this.welcomeCard.style.display = 'none';
         }
 
         // 添加用户消息
@@ -76,7 +99,7 @@ class ChatApp {
             await this.streamChat(message, aiMessageEl);
         } catch (error) {
             aiMessageEl.querySelector('.message-content').innerHTML = 
-                `<span class="error-message">发生错误: ${error.message}</span>`;
+                `<span style="color: #ef4444;">发生错误: ${error.message}</span>`;
         } finally {
             this.sendBtn.disabled = false;
         }
@@ -135,7 +158,7 @@ class ChatApp {
                 }
                 contentEl.textContent = data.reply;
             } catch (retryError) {
-                contentEl.innerHTML = `<span class="error-message">发生错误: ${retryError.message}</span>`;
+                contentEl.innerHTML = `<span style="color: #ef4444;">发生错误: ${retryError.message}</span>`;
             }
         }
 
@@ -148,19 +171,38 @@ class ChatApp {
 
         const avatar = role === 'ai' ? '🤖' : '👤';
 
-        messageEl.innerHTML = `
-            <div class="message-avatar">${avatar}</div>
-            <div class="message-content">${content}</div>
-        `;
+        if (placeholder) {
+            messageEl.innerHTML = `
+                <div class="message-avatar">${avatar}</div>
+                <div class="message-content">
+                    <div class="typing-indicator">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                </div>
+            `;
+        } else {
+            messageEl.innerHTML = `
+                <div class="message-avatar">${avatar}</div>
+                <div class="message-content">${this.escapeHtml(content)}</div>
+            `;
+        }
 
-        this.chatContainer.appendChild(messageEl);
+        this.chatMessages.appendChild(messageEl);
         this.scrollToBottom();
 
         return messageEl;
     }
 
+    escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
     scrollToBottom() {
-        this.chatContainer.scrollTop = this.chatContainer.scrollHeight;
+        this.chatMessages.scrollTop = this.chatMessages.scrollHeight;
     }
 }
 

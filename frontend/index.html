@@ -1,46 +1,95 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" class="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ResumeAgent</title>
+    <title>ResumeAgent - AI 个人助手</title>
     <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div class="container">
-        <header class="header">
-            <div class="header-content">
-                <div class="avatar">
-                    <span id="ai-avatar">🤖</span>
-                </div>
-                <div class="header-info">
-                    <h1 id="ai-name">ResumeAgent 助手</h1>
-                    <p id="ai-status">在线</p>
+    <div class="app-container">
+        <!-- 侧边栏 -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <div class="logo-icon">
+                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
+                    <span class="logo-text">肖正烁的个人信息问答Agent</span>
                 </div>
             </div>
-        </header>
 
-        <main class="chat-container" id="chat-container">
-            <div class="welcome-message" id="welcome-message">
-                <p>👋 你好！我是肖正烁的 AI 助手</p>
-                <p>你可以问我关于肖正烁的背景、技能、项目经历等问题</p>
+            <div class="sidebar-content">
+                <div class="user-profile">
+                    <div class="avatar-large">
+                        <span>🤖</span>
+                    </div>
+                    <div class="profile-info">
+                        <h2 id="ai-name">肖正烁的 AI 助手</h2>
+                        <p class="status">
+                            <span class="status-dot"></span>
+                            在线
+                        </p>
+                    </div>
+                </div>
+
+                <div class="features">
+                    <h3>我可以帮你了解</h3>
+                    <ul>
+                        <li>📋 工作经历与项目经验</li>
+                        <li>💻 技术栈与专业技能</li>
+                        <li>🎯 职业优势与特点</li>
+                        <li>❓ 面试问题与建议</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="sidebar-footer">
+                <p class="tip">💡 试试问我：「你做过最有挑战的项目是什么？」</p>
+            </div>
+        </aside>
+
+        <!-- 主聊天区域 -->
+        <main class="chat-main">
+            <!-- 消息列表 -->
+            <div class="chat-messages" id="chat-messages">
+                <div class="welcome-card" id="welcome-card">
+                    <div class="welcome-icon">👋</div>
+                    <h1>你好，我是肖正烁的 AI 助手</h1>
+                    <p>你可以直接向我提问，我会以第一称帮你介绍正烁的背景和经历</p>
+                    <div class="quick-questions">
+                        <button class="quick-btn" data-question="介绍一下你自己">介绍一下你自己</button>
+                        <button class="quick-btn" data-question="你最擅长的技术是什么？">最擅长的技术</button>
+                        <button class="quick-btn" data-question="你做过最有挑战的项目是什么？">最有挑战的项目</button>
+                        <button class="quick-btn" data-question="为什么想离开腾讯？">为什么离开腾讯</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 输入区域 -->
+            <div class="chat-input-area">
+                <div class="input-container">
+                    <textarea 
+                        id="message-input" 
+                        placeholder="输入你的问题..."
+                        rows="1"
+                    ></textarea>
+                    <button id="send-btn" class="send-btn">
+                        <svg viewBox="0 0 24 24" fill="none">
+                            <path d="M12 5V19M12 5L6 11M12 5L18 11" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+                </div>
+                <p class="input-hint">按 Enter 发送，Shift + Enter 换行</p>
             </div>
         </main>
-
-        <footer class="input-container">
-            <div class="input-wrapper">
-                <textarea 
-                    id="message-input" 
-                    placeholder="输入你的问题..."
-                    rows="1"
-                ></textarea>
-                <button id="send-btn" class="send-btn">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M22 2L11 13M22 2L15 22L11 13M22 2L2 9L11 13"/>
-                    </svg>
-                </button>
-            </div>
-        </footer>
     </div>
 
     <script src="/static/js/app.js"></script>
