@@ -10,6 +10,7 @@ type Config struct {
 	Port           string
 	PersonaPath    string
 	PromptPath     string
+	AccessPassword string // 访问密码
 }
 
 func Load() *Config {
@@ -19,6 +20,7 @@ func Load() *Config {
 		Port:           getEnv("PORT", "8080"),
 		PersonaPath:    getEnv("PERSONA_PATH", "../data/persona.md"),
 		PromptPath:     getEnv("PROMPT_PATH", "../data/prompt.md"),
+		AccessPassword: getEnv("ACCESS_PASSWORD", ""), // 默认空字符串表示不启用密码
 	}
 }
 

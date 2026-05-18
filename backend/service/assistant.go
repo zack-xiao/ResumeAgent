@@ -72,7 +72,7 @@ func NewChatService(cfg Config) *ChatService {
 		baseURL:    "https://api.deepseek.com/v1",
 		persona:    cfg.Persona,
 		messages:   messages,
-		maxHistory: 20,
+		maxHistory: 10,
 	}
 }
 

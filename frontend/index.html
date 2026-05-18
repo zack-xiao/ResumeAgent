@@ -22,7 +22,7 @@
                             <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                         </svg>
                     </div>
-                    <span class="logo-text">肖正烁的个人信息问答Agent</span>
+                    <span class="logo-text">ResumeAgent</span>
                 </div>
             </div>
 
@@ -60,10 +60,11 @@
         <main class="chat-main">
             <!-- 消息列表 -->
             <div class="chat-messages" id="chat-messages">
+                <!-- 欢迎卡片 -->
                 <div class="welcome-card" id="welcome-card">
                     <div class="welcome-icon">👋</div>
                     <h1>你好，我是肖正烁的 AI 助手</h1>
-                    <p>你可以直接向我提问，我会以第一称帮你介绍正烁的背景和经历</p>
+                    <p>你可以直接向我提问，我会以第一人称帮你介绍正烁的背景和经历</p>
                     <div class="quick-questions">
                         <button class="quick-btn" data-question="介绍一下你自己">介绍一下你自己</button>
                         <button class="quick-btn" data-question="你最擅长的技术是什么？">最擅长的技术</button>
@@ -90,6 +91,20 @@
                 <p class="input-hint">按 Enter 发送，Shift + Enter 换行</p>
             </div>
         </main>
+    </div>
+
+    <!-- 密码弹窗 -->
+    <div class="modal-overlay" id="password-modal">
+        <div class="modal">
+            <div class="modal-icon">🔐</div>
+            <h2>请输入访问密码</h2>
+            <p>该页面受密码保护，请输入密码继续</p>
+            <div class="password-input-wrapper">
+                <input type="password" id="password-input" placeholder="请输入访问密码" />
+            </div>
+            <p class="error-message" id="password-error"></p>
+            <button class="modal-btn" id="password-submit">验证</button>
+        </div>
     </div>
 
     <script src="/static/js/app.js"></script>

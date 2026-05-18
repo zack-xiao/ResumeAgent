@@ -42,7 +42,14 @@ func main() {
 	})
 
 	// 创建处理器
-	chatHandler := handler.NewChatHandler(chatService, personaLoader)
+	chatHandler := handler.NewChatHandler(chatService, personaLoader, cfg)
+
+	// 打印配置信息
+	if cfg.AccessPassword != "" {
+		fmt.Println("访问密码: 已启用")
+	} else {
+		fmt.Println("访问密码: 未启用")
+	}
 
 	// 设置 Gin
 	gin.SetMode(gin.ReleaseMode)
@@ -67,6 +74,7 @@ func main() {
 	api := r.Group("/api")
 	{
 		api.GET("/init", chatHandler.InitHandler)
+		api.POST("/verify", chatHandler.VerifyHandler)
 		api.POST("/chat", chatHandler.ChatHandler)
 		api.POST("/chat/stream", chatHandler.StreamHandler)
 		api.POST("/reload", chatHandler.ReloadHandler)

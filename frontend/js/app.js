@@ -6,6 +6,10 @@ class ChatApp {
         this.aiName = document.getElementById('ai-name');
         this.welcomeCard = document.getElementById('welcome-card');
 
+        // 密码相关
+        this.needPassword = false;
+        this.isVerified = false;
+
         this.init();
     }
 
@@ -57,9 +61,34 @@ class ChatApp {
             if (data.welcome) {
                 this.updateWelcomeMessage(data.welcome);
             }
+
+            // 检查是否需要密码
+            if (data.need_password) {
+                this.needPassword = true;
+                // 检查是否已经验证过
+                const verified = sessionStorage.getItem('password_verified');
+                if (verified === 'true') {
+                    this.isVerified = true;
+                } else {
+                    this.showPasswordModal();
+                }
+            } else {
+                this.needPassword = false;
+                this.isVerified = true;
+            }
         } catch (error) {
             console.error('初始化失败:', error);
+            this.isVerified = true;
         }
+    }
+
+    showPasswordModal() {
+        document.getElementById('password-modal').classList.add('active');
+        document.getElementById('password-input').focus();
+    }
+
+    hidePasswordModal() {
+        document.getElementById('password-modal').classList.remove('active');
     }
 
     updateWelcomeMessage(welcome) {
@@ -76,6 +105,12 @@ class ChatApp {
     async sendMessage() {
         const message = this.messageInput.value.trim();
         if (!message) return;
+
+        // 检查是否需要验证密码
+        if (this.needPassword && !this.isVerified) {
+            this.showPasswordModal();
+            return;
+        }
 
         // 清空输入框
         this.messageInput.value = '';
@@ -98,7 +133,7 @@ class ChatApp {
         try {
             await this.streamChat(message, aiMessageEl);
         } catch (error) {
-            aiMessageEl.querySelector('.message-content').innerHTML = 
+            aiMessageEl.querySelector('.message-content').innerHTML =
                 `<span style="color: #ef4444;">发生错误: ${error.message}</span>`;
         } finally {
             this.sendBtn.disabled = false;
@@ -142,7 +177,6 @@ class ChatApp {
                 }
             }
         } catch (error) {
-            // 如果流式失败，尝试普通请求
             try {
                 const response = await fetch('/api/chat', {
                     method: 'POST',
@@ -206,7 +240,54 @@ class ChatApp {
     }
 }
 
-// 页面加载完成后初始化
+// 密码弹窗逻辑
 document.addEventListener('DOMContentLoaded', () => {
     window.chatApp = new ChatApp();
+
+    const passwordInput = document.getElementById('password-input');
+    const passwordSubmit = document.getElementById('password-submit');
+    const passwordError = document.getElementById('password-error');
+
+    async function verifyPassword() {
+        const password = passwordInput.value.trim();
+        if (!password) {
+            passwordError.textContent = '请输入密码';
+            return;
+        }
+
+        passwordSubmit.disabled = true;
+        passwordSubmit.textContent = '验证中...';
+        passwordError.textContent = '';
+
+        try {
+            const response = await fetch('/api/verify', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: password }),
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                sessionStorage.setItem('password_verified', 'true');
+                window.chatApp.isVerified = true;
+                document.getElementById('password-modal').classList.remove('active');
+                passwordInput.value = '';
+            } else {
+                passwordError.textContent = data.message || '密码错误';
+                passwordInput.value = '';
+                passwordInput.focus();
+            }
+        } catch (error) {
+            passwordError.textContent = '验证失败，请重试';
+        } finally {
+            passwordSubmit.disabled = false;
+            passwordSubmit.textContent = '验证';
+        }
+    }
+
+    passwordSubmit.addEventListener('click', verifyPassword);
+    passwordInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') verifyPassword();
+    });
 });

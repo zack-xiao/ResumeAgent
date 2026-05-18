@@ -8,19 +8,25 @@ import (
 
 	"github.com/gin-gonic/gin"
 
+	"resume-agent/config"
 	"resume-agent/persona"
 	"resume-agent/service"
 )
 
 type ChatHandler struct {
-	chatService *service.ChatService
+	chatService    *service.ChatService
 	personaLoader *persona.Loader
+	accessPassword string
+	personaData   string
 }
 
-func NewChatHandler(chatService *service.ChatService, personaLoader *persona.Loader) *ChatHandler {
+func NewChatHandler(chatService *service.ChatService, personaLoader *persona.Loader, cfg *config.Config) *ChatHandler {
+	persona, _ := personaLoader.Load()
 	return &ChatHandler{
-		chatService:  chatService,
-		personaLoader: personaLoader,
+		chatService:    chatService,
+		personaLoader:  personaLoader,
+		accessPassword: cfg.AccessPassword,
+		personaData:    persona,
 	}
 }
 
@@ -33,31 +39,78 @@ type ChatResponse struct {
 }
 
 type InitResponse struct {
-	Name    string `json:"name"`
-	Welcome string `json:"welcome"`
+	Name         string `json:"name"`
+	Welcome      string `json:"welcome"`
+	NeedPassword bool   `json:"need_password"`
+}
+
+type VerifyResponse struct {
+	Success bool   `json:"success"`
+	Message string `json:"message"`
 }
 
 // InitHandler 返回初始化信息
 func (h *ChatHandler) InitHandler(c *gin.Context) {
-	persona, _ := h.personaLoader.Load()
-	lines := strings.Split(persona, "\n")
+	lines := strings.Split(h.personaData, "\n")
 	var name string
 	for _, line := range lines {
-		if strings.HasPrefix(line, "- 姓名:") || strings.HasPrefix(line, "- 姓名：") {
-			name = strings.TrimPrefix(line, "- 姓名:")
-			name = strings.TrimPrefix(name, "- 姓名：")
-			name = strings.TrimSpace(name)
-			break
+		if strings.Contains(line, "姓名") && len(line) < 50 {
+			parts := strings.Split(line, "**")
+			if len(parts) >= 3 {
+				name = strings.TrimSpace(parts[2])
+			} else {
+				parts = strings.Split(line, ":")
+				if len(parts) >= 2 {
+					name = strings.TrimSpace(parts[len(parts)-1])
+				}
+			}
+			name = strings.Trim(name, "** \t")
+			if name != "" && name != "[你的名字]" {
+				break
+			}
 		}
 	}
-	if name == "" || name == "[你的名字]" {
+	if name == "" {
 		name = "AI助手"
 	}
 
 	c.JSON(http.StatusOK, InitResponse{
-		Name:    name,
-		Welcome: "你好！我是" + name + "，很高兴认识你。有什么想了解的吗？",
+		Name:         name,
+		Welcome:      "你好！我是" + name + "，很高兴认识你。有什么想了解的吗？",
+		NeedPassword: h.accessPassword != "",
 	})
+}
+
+// VerifyHandler 验证访问密码
+func (h *ChatHandler) VerifyHandler(c *gin.Context) {
+	var req ChatRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, VerifyResponse{
+			Success: false,
+			Message: "密码不能为空",
+		})
+		return
+	}
+
+	if h.accessPassword == "" {
+		c.JSON(http.StatusOK, VerifyResponse{
+			Success: true,
+			Message: "验证成功",
+		})
+		return
+	}
+
+	if req.Message == h.accessPassword {
+		c.JSON(http.StatusOK, VerifyResponse{
+			Success: true,
+			Message: "验证成功",
+		})
+	} else {
+		c.JSON(http.StatusOK, VerifyResponse{
+			Success: false,
+			Message: "密码错误，请重试",
+		})
+	}
 }
 
 // ChatHandler 处理普通聊天请求
@@ -90,7 +143,6 @@ func (h *ChatHandler) StreamHandler(c *gin.Context) {
 	c.Header("Connection", "keep-alive")
 	c.Header("Transfer-Encoding", "chunked")
 
-	// 设置 SSE 友好的格式
 	c.Stream(func(w io.Writer) bool {
 		err := h.chatService.ChatStream(c.Request.Context(), req.Message, func(chunk string) {
 			data := fmt.Sprintf("data: %s\n\n", chunk)
@@ -113,6 +165,7 @@ func (h *ChatHandler) ReloadHandler(c *gin.Context) {
 		return
 	}
 
+	h.personaData = persona
 	h.chatService.UpdatePersona(persona)
 	h.chatService.ClearHistory()
 
