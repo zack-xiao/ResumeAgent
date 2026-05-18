@@ -55,7 +55,7 @@ func (h *ChatHandler) InitHandler(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, InitResponse{
-		Name:    name + "的AI助手",
+		Name:    name,
 		Welcome: "你好！我是" + name + "，很高兴认识你。有什么想了解的吗？",
 	})
 }
