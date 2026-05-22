@@ -70,6 +70,8 @@
 
         <!-- 主聊天区域 -->
         <main class="chat-main">
+            <!-- Unicorn Studio 背景 -->
+            <div class="unicorn-bg" data-us-project="WNNLLwf6gPfzpefwXNJf"></div>
             <!-- 消息列表 -->
             <div class="chat-messages" id="chat-messages">
                 <!-- 欢迎卡片 -->
@@ -89,6 +91,7 @@
             <!-- 输入区域 -->
             <div class="chat-input-area">
                 <div class="input-container">
+                    <div class="input-orb"></div>
                     <textarea 
                         id="message-input" 
                         placeholder="输入你的问题..."
@@ -100,7 +103,6 @@
                         </svg>
                     </button>
                 </div>
-                <p class="input-hint">按 Enter 发送，Shift + Enter 换行</p>
             </div>
         </main>
     </div>
@@ -121,5 +123,35 @@
     </div>
 
     <script src="/static/js/app.js"></script>
+    <script type="text/javascript">
+        !function(){var u=window.UnicornStudio;if(u&&u.init){if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",function(){u.init()})}else{u.init()}}else{window.UnicornStudio={isInitialized:!1};var i=document.createElement("script");i.src="https://cdn.jsdelivr.net/gh/hiunicornstudio/unicornstudio.js@v2.1.12/dist/unicornStudio.umd.js",i.onload=function(){if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",function(){UnicornStudio.init()})}else{UnicornStudio.init()}},(document.head||document.body).appendChild(i)}}();
+    </script>
+    <script>
+        // 移除 Unicorn Studio 水印
+        (function removeWatermark() {
+            const check = setInterval(() => {
+                const bg = document.querySelector('.unicorn-bg');
+                if (!bg) return;
+                // 查找所有可能的水印元素并移除
+                const allEls = bg.querySelectorAll('*');
+                allEls.forEach(el => {
+                    const tag = el.tagName.toLowerCase();
+                    const cls = el.className || '';
+                    const id = el.id || '';
+                    const html = el.innerHTML || '';
+                    if ((tag === 'a' && (html.includes('unicorn') || html.includes('Unicorn'))) ||
+                        typeof cls === 'string' && (
+                            cls.toLowerCase().includes('brand') ||
+                            cls.toLowerCase().includes('watermark') ||
+                            cls.toLowerCase().includes('attribution')
+                        ) ||
+                        typeof id === 'string' && id.toLowerCase().includes('attribution')) {
+                        el.remove();
+                    }
+                });
+            }, 500);
+            setTimeout(() => clearInterval(check), 10000);
+        })();
+    </script>
 </body>
 </html>
