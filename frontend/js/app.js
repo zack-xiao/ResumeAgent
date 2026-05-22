@@ -3,7 +3,6 @@ class ChatApp {
         // 配置 marked
         if (typeof marked !== 'undefined') {
             marked.setOptions({
-                breaks: true,
                 gfm: true,
             });
         }
@@ -154,6 +153,15 @@ class ChatApp {
         return this.escapeHtml(text);
     }
 
+    base64Decode(str) {
+        const binary = atob(str);
+        const bytes = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i++) {
+            bytes[i] = binary.charCodeAt(i);
+        }
+        return new TextDecoder().decode(bytes);
+    }
+
     async streamChat(message, messageEl) {
         const contentEl = messageEl.querySelector('.message-content');
         let fullContent = '';
@@ -179,13 +187,18 @@ class ChatApp {
 
                 for (const line of lines) {
                     if (line.startsWith('data: ')) {
-                        const data = line.slice(6);
+                        const data = line.slice(6).replace(/\r$/, '');
                         if (data === '[DONE]') continue;
                         if (data.startsWith('[ERROR]')) {
                             throw new Error(data.slice(7));
                         }
-                        fullContent += data;
-                        // 流式过程中用纯文本显示
+                        try {
+                            fullContent += this.base64Decode(data);
+                        } catch(e) {
+                            fullContent += data;
+                        }
+                        // 流式过程中用纯文本显示，保留换行
+                        contentEl.style.whiteSpace = 'pre-wrap';
                         contentEl.textContent = fullContent;
                         this.scrollToBottom();
                     }

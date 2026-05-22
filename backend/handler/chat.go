@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"encoding/base64"
 	"fmt"
 	"io"
 	"net/http"
@@ -151,7 +152,8 @@ func (h *ChatHandler) StreamHandler(c *gin.Context) {
 	c.Stream(func(w io.Writer) bool {
 		err := h.chatService.ChatStream(c.Request.Context(), req.Message, func(chunk string) {
 			fullReply += chunk
-			data := fmt.Sprintf("data: %s\n\n", chunk)
+			encoded := base64.StdEncoding.EncodeToString([]byte(chunk))
+			data := fmt.Sprintf("data: %s\n\n", encoded)
 			c.Writer.Write([]byte(data))
 			c.Writer.Flush()
 		})
