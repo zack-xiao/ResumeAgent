@@ -1,5 +1,12 @@
 class ChatApp {
     constructor() {
+        // 配置 marked
+        if (typeof marked !== 'undefined') {
+            marked.setOptions({
+                breaks: true,
+                gfm: true,
+            });
+        }
         this.chatMessages = document.getElementById('chat-messages');
         this.messageInput = document.getElementById('message-input');
         this.sendBtn = document.getElementById('send-btn');
@@ -140,6 +147,13 @@ class ChatApp {
         }
     }
 
+    renderMd(text) {
+        if (typeof marked !== 'undefined') {
+            try { return marked.parse(text); } catch(e) { return this.escapeHtml(text); }
+        }
+        return this.escapeHtml(text);
+    }
+
     async streamChat(message, messageEl) {
         const contentEl = messageEl.querySelector('.message-content');
         let fullContent = '';
@@ -171,11 +185,14 @@ class ChatApp {
                             throw new Error(data.slice(7));
                         }
                         fullContent += data;
+                        // 流式过程中用纯文本显示
                         contentEl.textContent = fullContent;
                         this.scrollToBottom();
                     }
                 }
             }
+            // 流结束后一次性渲染 Markdown
+            contentEl.innerHTML = this.renderMd(fullContent);
         } catch (error) {
             try {
                 const response = await fetch('/api/chat', {
@@ -190,7 +207,7 @@ class ChatApp {
                 if (data.error) {
                     throw new Error(data.error);
                 }
-                contentEl.textContent = data.reply;
+                contentEl.innerHTML = this.renderMd(data.reply);
             } catch (retryError) {
                 contentEl.innerHTML = `<span style="color: #ef4444;">发生错误: ${retryError.message}</span>`;
             }
@@ -219,9 +236,10 @@ class ChatApp {
                 </div>
             `;
         } else {
+            const renderedContent = role === 'ai' ? this.renderMd(content) : this.escapeHtml(content);
             messageEl.innerHTML = `
                 <div class="message-avatar">${avatar}</div>
-                <div class="message-content">${this.escapeHtml(content)}</div>
+                <div class="message-content">${renderedContent}</div>
             `;
         }
 
